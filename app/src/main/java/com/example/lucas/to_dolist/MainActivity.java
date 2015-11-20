@@ -1,7 +1,10 @@
 package com.example.lucas.to_dolist;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -10,7 +13,21 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import org.apache.commons.io.FileUtils;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,15 +41,40 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         // assign ListView, items for  ListView and adapter
         todoList = (ListView) findViewById(R.id.initialList);
         items = new ArrayList<>();
+        readItems();
         itemsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
         todoList.setAdapter(itemsAdapter);
+
+
+
     }
 
-    // onClick event
-    public void addItem(View view) {
+    private void readItems() {
+        File file = getFilesDir();
+        File todoFile = new File(file, "todo.txt");
+        try {
+            items = new ArrayList<String>(FileUtils.readLines(todoFile));
+        } catch (IOException e) {
+            items = new ArrayList<String>();
+        }
+    }
+
+    private void writeItems() {
+        File file = getFilesDir();
+        File todoFile = new File(file, "todo.txt");
+        try {
+            FileUtils.writeLines(todoFile, items);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+       // onClick event
+    public void addItem(View view) throws FileNotFoundException {
 
         // gets input and converts
         EditText text = (EditText) findViewById(R.id.itemToAdd);
@@ -46,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
             // adds input to list and empties EditText
             itemsAdapter.add(content);
             text.setText("");
+            writeItems();
+
         }
 
         // calls removal function
@@ -89,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
                 // removes item at position and notifies of changed data
                 items.remove(position);
                 itemsAdapter.notifyDataSetChanged();
+                writeItems();
+
 
             }
         });
@@ -104,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog helpDialog = newPopUp.create();
         helpDialog.show();
     }
+
+
 }
 
 
